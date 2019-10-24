@@ -2,7 +2,8 @@
   "compilerOptions": {
     "module": "es2015",
     "target": "es6",
-    "sourceMap": true
+    "allowJs": true,
+    "sourceMap": false
   },
   "exclude": [
     "node_modules"

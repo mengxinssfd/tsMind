@@ -4,11 +4,21 @@
  * @Description:
  */
 
+export enum Direct {
+    top,
+    bottom,
+    left,
+    right
+}
+
 export interface Node {
     id: string | number,
     content: string,
-    render?: (node: Node) => void,
-    children?: Node[]
+    isRoot?: boolean,
+    render?: (node: Node, domNode: any) => void,
+    children?: Node[],
+    currentDom?: any,
+    direct?: Direct
 }
 
 export interface Options {
@@ -35,21 +45,10 @@ export interface Operation {
     updateNode(id: number, data: object): void
 
     destroy(): void
+
+    drawDomNode()
 }
 
-export class DomOperate {
-    createElement(nodeName: string): any {
-        return document.createElement(nodeName);
-    }
-
-    isDom = (typeof HTMLElement === 'object') ?
-        function (target) {
-            return target instanceof HTMLElement;
-        } :
-        function (target) {
-            return target && typeof target === 'object' && target.nodeType === 1 && typeof target.nodeName === 'string';
-        };
-}
 
 export interface LifeCircle {
 
