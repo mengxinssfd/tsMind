@@ -11,6 +11,7 @@ export enum Direct {
     right
 }
 
+
 export interface Node {
     id: string | number,
     content: string,
@@ -18,13 +19,23 @@ export interface Node {
     render?: (node: Node, domNode: any) => void,
     children?: Node[],
     currentDom?: any,
-    direct?: Direct
+    direct?: Direct,
+    parent?: Node,
+    parentDom?: any,
+    layout?: {
+        width: number,
+        height: number,
+        x: number,
+        y: number,
+        totalHeight?: number // 包含子元素的高度
+    }
 }
 
 export interface Options {
     el: string | any,
     mode: "canvas" | "html",
     editable: boolean,
+    margin: number,
     line: {
         width: number,
         color: string

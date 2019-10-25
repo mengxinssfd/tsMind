@@ -10,6 +10,7 @@ import "./main.less";
 const tm = new TsMind({
     el: ".container",
     editable: false,
+    margin: 10,
     line: {
         color: "",
         width: 1
@@ -39,6 +40,16 @@ tm.setData({
         {
             id: "sub2",
             content: "sub2",
+            children: [
+                {
+                    id: "sub5",
+                    content: "sub5",
+                },
+                {
+                    id: "sub66666",
+                    content: "sub66666",
+                }
+            ]
         }
     ],
 });
