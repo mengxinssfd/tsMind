@@ -105,17 +105,17 @@ class TsMind implements Operation, LifeCircle {
             node.layout.y = this.nodeTree.layout.totalHeight + margin;
             node.layout.totalHeight = node.layout.height;
             let p = node.parent;
+            const addHeight = Math.max(height, parent.layout.height) + margin;
             while (p) {
-                p.layout.totalHeight += Math.max(height, parent.layout.height) + margin;
+                p.layout.totalHeight += addHeight;
                 p = p.parent;
             }
         }
         if (!node.isRoot) {
             const pChildLen = parent.children.length;
-            const marginHeight = this.options.margin * (pChildLen - 1);
+            // const marginHeight = this.options.margin * (pChildLen - 1);
             const firstChildLayout = parent.children[0].layout;
             const lastChildLayout = parent.children[pChildLen - 1].layout;
-            parent.layout.y = (parent.layout.totalHeight - parent.layout.height) / 2 + marginHeight / 2;
             parent.layout.y = (lastChildLayout.y + lastChildLayout.height - firstChildLayout.y - parent.layout.height) / 2 + firstChildLayout.y;
         }
         return {height, width};
