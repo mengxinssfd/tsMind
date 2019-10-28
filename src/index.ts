@@ -55,10 +55,12 @@ class TsMind implements Operation, LifeCircle {
         this.nodeWrapper.style.height = nwLayout.height + "px";
 
         const el = this.el;
-        this.nodeWrapperLayout.x = ((el.offsetWidth || el.clientWidth) - nwLayout.width) / 2;
-        this.nodeWrapperLayout.y = ((el.offsetHeight || el.clientHeight) - nwLayout.height) / 2;
+        this.nodeWrapperLayout.x = Math.max(((el.offsetWidth || el.clientWidth) - nwLayout.width) / 2, 0);
+        this.nodeWrapperLayout.y = Math.max(((el.offsetHeight || el.clientHeight) - nwLayout.height) / 2, 0);
         this.nodeWrapper.style.left = nwLayout.x + "px";
         this.nodeWrapper.style.top = nwLayout.y + "px";
+        this.canvas.style.width = nwLayout.x + "px";
+        this.canvas.style.width = nwLayout.y + "px";
 
         console.log("hhhhhhhhhhhhhhhh", width, height, node);
         this.setPosition(this.nodeTree);
@@ -77,6 +79,8 @@ class TsMind implements Operation, LifeCircle {
     }
 
     getTotalHeight(node: Node): { width: number, height: number } {
+        const parent = node.parent;
+        const margin = this.options.margin;
         let height = node.currentDom.clientHeight;
         let width = node.currentDom.clientWidth;
 
@@ -84,26 +88,36 @@ class TsMind implements Operation, LifeCircle {
         node.layout.height = height;
         // node.layout.totalHeight = height;
 
+        // if (node.content === "sub5555") debugger
         node.layout.x = node.isRoot ? this.options.margin : this.options.margin + node.parent.layout.x + node.parent.layout.width;
         if (node.children && node.children.length) {
             let childrenHeight = (node.children.length - 1) * this.options.margin;
             let childrenWidth = 0;
             node.children.forEach((nd, index) => {
                 const {width: w, height: h} = this.getTotalHeight(nd);
-                node.layout.totalHeight += h + nd.layout.y;
-                childrenHeight += h;
+                // 本身的totalHeight
                 childrenWidth = Math.max(this.options.margin + w, childrenWidth);
+                childrenHeight += h;
             });
-            // node.layout.y = (childrenHeight - node.layout.height) / 2 + this.options.margin;
             height = Math.max(height, childrenHeight);
             width += childrenWidth;
+        } else {
+            node.layout.y = this.nodeTree.layout.totalHeight + margin;
+            node.layout.totalHeight = node.layout.height;
+            let p = node.parent;
+            while (p) {
+                p.layout.totalHeight += Math.max(height, parent.layout.height) + margin;
+                p = p.parent;
+            }
         }
         if (!node.isRoot) {
-            const parent = node.parent;
-            node.layout.y = parent.layout.totalHeight + this.options.margin;
-            parent.layout.y = (parent.layout.totalHeight - parent.layout.height) / 2 + this.options.margin;
+            const pChildLen = parent.children.length;
+            const marginHeight = this.options.margin * (pChildLen - 1);
+            const firstChildLayout = parent.children[0].layout;
+            const lastChildLayout = parent.children[pChildLen - 1].layout;
+            parent.layout.y = (parent.layout.totalHeight - parent.layout.height) / 2 + marginHeight / 2;
+            parent.layout.y = (lastChildLayout.y + lastChildLayout.height - firstChildLayout.y - parent.layout.height) / 2 + firstChildLayout.y;
         }
-
         return {height, width};
     }
 
