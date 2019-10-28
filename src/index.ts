@@ -20,7 +20,6 @@ class TsMind implements Operation, LifeCircle {
     private canvas: any;
     private context: any;
 
-
     constructor(options: Options) {
         this.options = options;
         this.init();

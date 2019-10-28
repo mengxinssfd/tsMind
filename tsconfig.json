@@ -17,5 +17,9 @@
   },
   "exclude": [
     "node_modules"
+  ],
+  "suppressImplicitAnyIndexErrors": true,
+  "lib": [
+    "es2017"
   ]
 }
