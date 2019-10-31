@@ -16,7 +16,7 @@ import "./main.less";
     const tm = new TsMind({
         el: ".container",
         editable: false,
-        margin: 20,
+        margin: 40,
         line: {
             color: "",
             width: 1

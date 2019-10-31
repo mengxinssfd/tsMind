@@ -4,13 +4,19 @@
  * @Description:
  */
 
-export enum Direct {
-    top,
-    bottom,
-    left,
-    right
+
+// 坐标
+export interface Coord {
+    x: number
+    y: number
 }
 
+interface Layout extends Coord {
+    width: number
+    height: number
+    totalHeight: number // 包含子元素的高度
+    totalWidth: number // 包含子元素的宽度
+}
 
 export interface Node {
     id: string | number,
@@ -19,16 +25,10 @@ export interface Node {
     render?: (node: Node, domNode: any) => void,
     children?: Node[],
     currentDom?: any,
-    direct?: Direct,
+    direct?: "top" | "bottom" | "left" | "right",
     parent?: Node,
     parentDom?: any,
-    layout?: {
-        width: number,
-        height: number,
-        x: number,
-        y: number,
-        totalHeight?: number // 包含子元素的高度
-    }
+    layout?: Layout
 }
 
 export interface Options {

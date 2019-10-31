@@ -3,7 +3,7 @@
  * @Date: 2019-10-24 11:21
  * @Description:
  */
-import {Operation, LifeCircle, Node, Options} from "./Interface";
+import {Coord, LifeCircle, Node, Operation, Options} from "./Interface";
 import {DomOperator} from "./domOperator";
 
 class TsMind implements Operation, LifeCircle {
@@ -37,8 +37,8 @@ class TsMind implements Operation, LifeCircle {
 
         const canvas = this.canvas = DomOperator.createElement("canvas");
         el.appendChild(canvas);
-        canvas.style.width = width + "px";
-        canvas.style.height = height + "px";
+        // canvas.style.width = width + "px";
+        // canvas.style.height = height + "px";
 
         const context = this.context = this.canvas.getContext("2d");
     }
@@ -58,10 +58,15 @@ class TsMind implements Operation, LifeCircle {
         this.nodeWrapperLayout.y = Math.max(((el.offsetHeight || el.clientHeight) - nwLayout.height) / 2, 0);
         this.nodeWrapper.style.left = nwLayout.x + "px";
         this.nodeWrapper.style.top = nwLayout.y + "px";
-        this.canvas.style.width = nwLayout.x + "px";
-        this.canvas.style.width = nwLayout.y + "px";
 
-        console.log("hhhhhhhhhhhhhhhh", width, height, node);
+        this.canvas.style.position = "absolute";
+        this.canvas.style.left = nwLayout.x + "px";
+        this.canvas.style.top = nwLayout.y + "px";
+        this.canvas.width = nwLayout.width;
+        this.canvas.height = nwLayout.height;
+        this.canvas.style.width = nwLayout.width + "px";
+        this.canvas.style.height = nwLayout.height + "px";
+
         this.setPosition(this.nodeTree);
     }
 
@@ -115,9 +120,43 @@ class TsMind implements Operation, LifeCircle {
             // const marginHeight = this.options.margin * (pChildLen - 1);
             const firstChildLayout = parent.children[0].layout;
             const lastChildLayout = parent.children[pChildLen - 1].layout;
-            parent.layout.y = (lastChildLayout.y + lastChildLayout.height - firstChildLayout.y - parent.layout.height) / 2 + firstChildLayout.y;
+            parent.layout.y = ~~((lastChildLayout.y + lastChildLayout.height - firstChildLayout.y - parent.layout.height) / 2 + firstChildLayout.y);
         }
         return {height, width};
+    }
+
+    drawLines() {
+        const nodes = this.nodeTree;
+        const context = this.context;
+        if (!nodes.children || !nodes.children.length) return;
+
+        this.drawLine(nodes, context);
+    }
+
+    drawLine(node: Node, context) {
+        if (node.children && node.children.length) {
+            node.children.forEach(nd => this.drawLine(nd, context));
+        }
+        if (!node.isRoot) {
+            const parent = node.parent;
+            const pCoord = {x: parent.layout.x, y: parent.layout.y};
+            const coord = {x: node.layout.x, y: node.layout.y};
+            let space = ~~(this.options.margin / 2);
+            if (!node.direct || node.direct === "right") {
+                pCoord.x = parent.layout.width + pCoord.x;
+                pCoord.y = ~~(parent.layout.height / 2) + pCoord.y;
+                coord.y = ~~(node.layout.height / 2) + coord.y;
+            }
+            this.drawBezierLine(context, pCoord, coord, space);
+        }
+
+    }
+
+    drawBezierLine(context, start: Coord, end: Coord, space: number) {
+        context.beginPath();
+        context.moveTo(start.x, start.y);
+        context.bezierCurveTo(start.x + space, start.y, end.x - space, end.y, end.x, end.y);
+        context.stroke();
     }
 
     drawDomNode() {
@@ -137,6 +176,7 @@ class TsMind implements Operation, LifeCircle {
                 width: 0,
                 height: 0,
                 totalHeight: 0,
+                totalWidth: 0,
                 x: 0,
                 y: 0
             };
@@ -159,9 +199,7 @@ class TsMind implements Operation, LifeCircle {
             }
         }
 
-
         createNodeDom(nodeTree);
-        this.layout();
     }
 
     addNode(parentId, data: object): void {
@@ -183,6 +221,8 @@ class TsMind implements Operation, LifeCircle {
     setData(node: Node): void {
         this.nodeTree = node;
         this.drawDomNode();
+        this.layout();
+        this.drawLines();
     }
 
     destroy(): void {
