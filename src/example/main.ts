@@ -16,10 +16,11 @@ import "./main.less";
     const tm = new TsMind({
         el: ".container",
         editable: false,
+        // margin: 10,
         margin: 40,
         line: {
-            color: "",
-            width: 1
+            color: "#FFA29E",
+            width: 2
         },
         mode: "html"
     });
@@ -40,6 +41,13 @@ import "./main.less";
                     {
                         id: "sub3",
                         content: "sub3",
+                        children: [...new Array(30).keys()].map(i => ({
+                        // children: [...new Array(799).keys()].map(i => ({
+                        // children: [...new Array(1670).keys()].map(i => ({
+                        // children: [...new Array(2000).keys()].map(i => ({
+                            id: "subA" + i,
+                            content: "subA" + i,
+                        }))
                     }
                 ]
             },

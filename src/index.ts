@@ -2,8 +2,10 @@
  * @Author: mengxinssfd
  * @Date: 2019-10-24 11:21
  * @Description:
+ * @Tips: 谷歌canvas高度不能超过65535px 超过黑屏
+ * @Tips: edge超过16358px不画线 火狐17290px
  */
-import {Coord, LifeCircle, Node, Operation, Options} from "./Interface";
+import {Coord, CustomNode, Direct, LifeCircle, Node, Operation, Options} from "./Interface";
 import {DomOperator} from "./domOperator";
 
 class TsMind implements Operation, LifeCircle {
@@ -19,6 +21,9 @@ class TsMind implements Operation, LifeCircle {
     private readonly options: Options;
     private canvas: any;
     private context: any;
+    private nodes: {
+        [key: string]: Node,
+    } = {};
 
     constructor(options: Options) {
         this.options = options;
@@ -64,6 +69,7 @@ class TsMind implements Operation, LifeCircle {
         this.canvas.style.top = nwLayout.y + "px";
         this.canvas.width = nwLayout.width;
         this.canvas.height = nwLayout.height;
+        // this.canvas.height = 65535;
         this.canvas.style.width = nwLayout.width + "px";
         this.canvas.style.height = nwLayout.height + "px";
 
@@ -126,33 +132,34 @@ class TsMind implements Operation, LifeCircle {
     }
 
     drawLines() {
-        const nodes = this.nodeTree;
+        const nodes = this.nodes;
         const context = this.context;
-        if (!nodes.children || !nodes.children.length) return;
+        if (!this.nodeTree.children || !this.nodeTree.children.length) return;
 
-        this.drawLine(nodes, context);
-    }
 
-    drawLine(node: Node, context) {
-        if (node.children && node.children.length) {
-            node.children.forEach(nd => this.drawLine(nd, context));
-        }
-        if (!node.isRoot) {
-            const parent = node.parent;
-            const pCoord = {x: parent.layout.x, y: parent.layout.y};
-            const coord = {x: node.layout.x, y: node.layout.y};
-            let space = ~~(this.options.margin / 2);
-            if (!node.direct || node.direct === "right") {
-                pCoord.x = parent.layout.width + pCoord.x;
-                pCoord.y = ~~(parent.layout.height / 2) + pCoord.y;
-                coord.y = ~~(node.layout.height / 2) + coord.y;
+        const drawLine = () => {
+            for (let key in this.nodes) {
+                const node = this.nodes[key];
+                if (node.isRoot) continue;
+                const parent = node.parent;
+                const pCoord = {x: parent.layout.x, y: parent.layout.y};
+                const coord = {x: node.layout.x, y: node.layout.y};
+                let space = ~~(this.options.margin / 2);
+                if (node.direct === Direct.right) {
+                    pCoord.x = parent.layout.width + pCoord.x;
+                    pCoord.y = ~~(parent.layout.height / 2) + pCoord.y;
+                    coord.y = ~~(node.layout.height / 2) + coord.y;
+                }
+                this.drawBezierLine(context, pCoord, coord, space);
             }
-            this.drawBezierLine(context, pCoord, coord, space);
-        }
+        };
 
+        drawLine();
     }
 
     drawBezierLine(context, start: Coord, end: Coord, space: number) {
+        context.lineWidth = this.options.line.width;
+        context.strokeStyle = this.options.line.color;
         context.beginPath();
         context.moveTo(start.x, start.y);
         context.bezierCurveTo(start.x + space, start.y, end.x - space, end.y, end.x, end.y);
@@ -166,11 +173,25 @@ class TsMind implements Operation, LifeCircle {
         this.nodeWrapper = nodeWrapper;
         this.el.appendChild(nodeWrapper);
 
-        function createNodeDom(node: Node, parent?: Node) {
-            const dom = DomOperator.createElement("node");
+        const createNodeDom = (node: Node, parent?: Node) => {
+            if (node.id in this.nodes) {
+                console.error(`id: ${node.id} duplicate`);
+            } else {
+                this.nodes[node.id] = node;
+            }
+            // const dom = DomOperator.createElement("node");
+            // dom.setAttribute("nodeid", <string>node.id);
+            // dom.style.visibility = "hidden";
+            const dom = DomOperator.createEl({
+                type: "node",
+                attr: {
+                    nodeid: node.id
+                },
+                style: {
+                    visibility: "hidden"
+                }
+            });
             nodeWrapper.appendChild(dom);
-            dom.setAttribute("nodeid", <string>node.id);
-            dom.style.visibility = "hidden";
             node.currentDom = dom;
             node.layout = {
                 width: 0,
@@ -180,10 +201,14 @@ class TsMind implements Operation, LifeCircle {
                 x: 0,
                 y: 0
             };
+            // 默认右向
+            node.direct = Direct[node.direct] || Direct.right;
+            // 默认展开
+            node.expand = node.expand === undefined ? true : node.expand;
             if (parent !== undefined) {
                 node.parent = parent;
             }
-            console.log(node.content, dom.clientWidth);
+            // console.log(node.content, dom.clientWidth);
             if (node.isRoot) {
                 DomOperator.addClass(dom, "root");
             }
@@ -193,16 +218,18 @@ class TsMind implements Operation, LifeCircle {
                 dom.innerText = node.content;
             }
             if (node.children && node.children.length) {
+                const expander = DomOperator.createElement("expander");
+                dom.appendChild(expander);
                 for (let child of node.children) {
                     createNodeDom(child, node);
                 }
             }
-        }
+        };
 
         createNodeDom(nodeTree);
     }
 
-    addNode(parentId, data: object): void {
+    addNode(parentId, data: CustomNode): void {
     }
 
     getNode(id): void {
@@ -217,12 +244,12 @@ class TsMind implements Operation, LifeCircle {
     draw(): void {
     }
 
-
-    setData(node: Node): void {
+    setData(node: CustomNode): void {
         this.nodeTree = node;
         this.drawDomNode();
         this.layout();
         this.drawLines();
+        console.log(this.nodes);
     }
 
     destroy(): void {

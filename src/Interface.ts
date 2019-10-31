@@ -4,6 +4,12 @@
  * @Description:
  */
 
+export enum Direct {
+    left = "left",
+    right = "right",
+    top = "top",
+    bottom = "bottom"
+}
 
 // 坐标
 export interface Coord {
@@ -18,17 +24,23 @@ interface Layout extends Coord {
     totalWidth: number // 包含子元素的宽度
 }
 
-export interface Node {
+// 接收数据时的node类型
+export interface CustomNode {
     id: string | number,
     content: string,
     isRoot?: boolean,
     render?: (node: Node, domNode: any) => void,
     children?: Node[],
-    currentDom?: any,
-    direct?: "top" | "bottom" | "left" | "right",
+    direct?: Direct,
+    expand?: boolean,
+}
+
+// node私有的属性，外部设置数据的时候不能传过来
+export interface Node extends CustomNode {
     parent?: Node,
-    parentDom?: any,
-    layout?: Layout
+    layout?: Layout,
+    currentDom?: any,
+    // parentDom?: any,
 }
 
 export interface Options {
@@ -43,17 +55,17 @@ export interface Options {
 }
 
 export interface Operation {
-    setData(data: Node): void
+    setData(data: CustomNode): void
 
     draw(): void
 
-    addNode(parentId: string | number, data: object): void
+    addNode(parentId: string | number, data: CustomNode): void
 
     removeNode(id: number): void
 
     getNode(id: number): void
 
-    updateNode(id: number, data: object): void
+    updateNode(id: number, data: CustomNode): void
 
     destroy(): void
 
@@ -64,3 +76,14 @@ export interface Operation {
 export interface LifeCircle {
 
 }
+
+enum tes {
+    A = "A",
+    B = "B"
+}
+
+function t(p: tes) {
+    console.log(p);
+}
+
+t(<tes>"A");

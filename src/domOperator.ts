@@ -16,9 +16,53 @@ let vendor = (() => {
     return false;
 })();
 
+interface DomOptions {
+    type: string,
+    content?: string,
+    style?: any,
+    attr?: any,
+    on?: {
+        [key: string]: {
+            catch?: boolean,
+            handler: () => boolean
+        } | (() => boolean)
+    }
+}
+
 export class DomOperator {
     static createElement(nodeName: string): any {
         return document.createElement(nodeName);
+    }
+
+    static createEl(options: DomOptions): any {
+        const dom = document.createElement(options.type);
+        if (options.content) dom.innerText = options.content;
+        // 样式
+        for (let styleType in options.style) {
+            const style = options.style[styleType];
+            if (!style) continue;
+            dom.style[DomOperator.prefixStyle(styleType)] = style;
+        }
+
+        // 属性
+        for (let key in options.attr) {
+            const value = options.attr[key];
+            if (!key) continue;
+            dom.setAttribute(key, value);
+        }
+
+        // 事件
+        for (let event in options.on) {
+            const value = options.on[event];
+            if (!value) continue;
+            if (typeof value === "function") {
+                dom.addEventListener(event, value);
+            } else {
+                dom.addEventListener(event, value.handler, value.catch);
+            }
+
+        }
+        return dom;
     }
 
     static isDom = (typeof HTMLElement === 'object') ?
@@ -60,15 +104,10 @@ export class DomOperator {
      * @param style
      * @returns {*}
      */
-    static prefixStyle(style: string): string | false {
-        if (vendor === false) {
-            return false;
-        }
-
-        if (vendor === 'transform') {
+    static prefixStyle(style: string): string {
+        if (vendor === false || vendor === 'transform') {
             return style;
         }
-
         return vendor + style.charAt(0).toUpperCase() + style.substr(1);
     }
 }

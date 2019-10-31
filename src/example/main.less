@@ -1,20 +1,35 @@
-.container {
-  width: 600px;
-  height: 400px;
-  background-color: #e4edff;
-  overflow: auto;
-}
-
 node {
   position: absolute;
   box-sizing: border-box;
-  padding: 10px 20px;
-  background: bisque;
+  padding: 4px 10px;
+  background: #acc2ff;
+  color: white;
+  cursor: default;
+  &:hover {
+    box-shadow: 0 0 2px 2px gray;
+  }
   //top: 50%;
   //left: 100%;
   //transform: translateY(50%);
+  expander {
+    position: absolute;
+    @w: 10px;
+    width: @w;
+    height: @w;
+    margin-top: -@w/2;
+    top: 50%;
+    left: 100%;
+    border-radius: 50%;
+    background-color: #493dff;
+    &:after {
+      position: absolute;
+      top: -4px;
+      left: 3px;
+      font-size: 10px;
+      content: "-";
+    }
+  }
 }
-
 .node-wrapper {
   position: absolute;
   //left: 50%;
