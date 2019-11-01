@@ -5,7 +5,7 @@
  * @Tips: 谷歌canvas高度不能超过65535px 超过黑屏
  * @Tips: edge超过16358px不画线 火狐17290px
  */
-import {Coord, CustomNode, Direct, LifeCircle, Node, Operation, Options} from "./Interface";
+import {CustomNode, Direct, LifeCircle, Node, Operation, Options} from "./Interface";
 import {DomOperator} from "./domOperator";
 import {CanvasOperator} from "./canvasOperator";
 
@@ -51,7 +51,10 @@ class TsMind implements Operation, LifeCircle {
 
     layout() {
         const node = this.nodeTree;
-        const {height, width} = this.getTotalHeight(node);
+
+        // const {height, width} = this.getTotalHeight(node);
+        const {height, width} = this.getLeftTotalHeight(node, node);
+
         const nwLayout = this.nodeWrapperLayout;
         nwLayout.width = width + this.options.margin * 2;
         nwLayout.height = height + this.options.margin * 2;
@@ -113,6 +116,66 @@ class TsMind implements Operation, LifeCircle {
                 });
             }
         }
+    }
+
+    getLeftTotalHeight(node: Node, root: Node): { width: number, height: number } {
+        const parent = node.parent;
+        const margin = this.options.margin;
+        let height = node.el.clientHeight;
+        let width = node.el.clientWidth;
+
+        node.layout.width = width;
+        node.layout.height = height;
+        // node.layout.totalHeight = height;
+
+        // node.layout.x = node.isRoot ? this.options.margin : this.options.margin + node.parent.layout.x + node.parent.layout.width;
+        if (node.children && node.children.length && node.expand) {
+            let childrenHeight = (node.children.length - 1) * this.options.margin;
+            let childrenWidth = 0;
+            node.children.forEach((nd, index) => {
+                const {width: w, height: h} = this.getLeftTotalHeight(nd, root);
+                // 本身的totalHeight
+                childrenWidth = Math.max(margin + w, childrenWidth);
+                childrenHeight += h;
+            });
+            node.layout.x = childrenWidth + margin;
+
+            // TODO 左侧扩展margin不对
+            const childX = node.layout.x - margin;
+            node.children.forEach(nd => {
+                nd.layout.x = childX - nd.layout.width;
+                if (nd.expander) nd.expander.x = nd.layout.x;
+            });
+            height = Math.max(height, childrenHeight);
+            width += childrenWidth;
+        } else {
+            node.layout.y = root.layout.totalHeight + margin;
+            if (node.expander) node.expander.y = node.layout.y + node.layout.height / 2;
+            node.layout.totalWidth = width;
+            node.layout.totalHeight = node.layout.height;
+            let p = parent;
+            if (p) {
+                // 父节点全部高度加上此节点高度
+                const addHeight = Math.max(height, parent.layout.height) + margin;
+                const addWidth = Math.max(width + margin + parent.layout.width, parent.layout.totalWidth);
+                while (p) {
+                    p.layout.totalHeight += addHeight;
+                    p.layout.totalWidth = addWidth;
+                    p = p.parent;
+                }
+            }
+        }
+        // if (node.expander) node.expander.x = node.layout.x;
+        if (!node.isRoot) {
+            const pChildLen = parent.children.length;
+            // const marginHeight = this.options.margin * (pChildLen - 1);
+            const firstChildLayout = parent.children[0].layout;
+            const lastChildLayout = parent.children[pChildLen - 1].layout;
+            parent.layout.y = ~~((lastChildLayout.y + lastChildLayout.height - firstChildLayout.y - parent.layout.height) / 2 + firstChildLayout.y);
+            if (!parent.isRoot) parent.expander.y = parent.layout.y + parent.layout.height / 2;
+        }
+
+        return {height, width};
     }
 
     getTotalHeight(node: Node): { width: number, height: number } {
@@ -181,11 +244,19 @@ class TsMind implements Operation, LifeCircle {
                 // 间距
                 let space = ~~(this.options.margin / 2);
                 // 右向
-                if (node.direct === Direct.right) {
-                    pCoord.x = parent.layout.width + pCoord.x;
-                    pCoord.y = ~~(parent.layout.height / 2) + pCoord.y;
-                    coord.y = ~~(node.layout.height / 2) + coord.y;
+
+                switch (node.direct) {
+                    case Direct.left:
+                        space = -space;
+                        coord.x = node.layout.x + node.layout.width;
+                        break;
+                    case Direct.right:
+                        pCoord.x = parent.layout.width + pCoord.x;
+                        break;
                 }
+                pCoord.y = ~~(parent.layout.height / 2) + pCoord.y;
+                coord.y = ~~(node.layout.height / 2) + coord.y;
+
                 CanvasOperator.drawBezierLine(context, {
                     width: this.options.line.width,
                     color: this.options.line.color
@@ -243,23 +314,34 @@ class TsMind implements Operation, LifeCircle {
                 dom.innerText = node.content;
             }
             if (node.children && node.children.length) {
-                const expander = DomOperator.createEl({
-                    type: "expander",
-                    style: {
-                        visibility: "hidden"
-                    },
-                    attr: {
-                        nodeid: node.id,
-                        class: "expander" + (node.expand ? " expand" : ""),
-                    },
-                    on: {
-                        click: (e) => {
-                            this.setExpand(<string>node.id);
+                if (!node.isRoot) {
+                    const expander = DomOperator.createEl({
+                        type: "expander",
+                        style: {
+                            visibility: "hidden"
+                        },
+                        attr: {
+                            nodeid: node.id,
+                            class: [
+                                "expander",
+                                (node.expand ? " expand" : ""),
+                                ({
+                                    [Direct.left]: "left",
+                                    [Direct.right]: "right",
+                                    [Direct.top]: "top",
+                                    [Direct.bottom]: "bottom"
+                                })[node.direct]
+                            ].filter(i => !!i).join(" "),
+                        },
+                        on: {
+                            click: (e) => {
+                                this.setExpand(<string>node.id);
+                            }
                         }
-                    }
-                });
-                node.expander = {el: expander, x: 0, y: 0};
-                nodeWrapper.appendChild(expander);
+                    });
+                    node.expander = {el: expander, x: 0, y: 0};
+                    nodeWrapper.appendChild(expander);
+                }
                 for (let child of node.children) {
                     createDom(child, node);
                 }

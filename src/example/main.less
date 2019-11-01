@@ -29,6 +29,12 @@ expander {
   background-color: #493dff;
   color: white;
   cursor: pointer;
+  &.left {
+    margin-left: -@w;
+  }
+  &.top {
+    margin-top: -@w
+  }
   &.expand:after {
     top: -3px;
     left: 4px;

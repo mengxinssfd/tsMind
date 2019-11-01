@@ -30,7 +30,7 @@ import "./main.less";
         content: "root",
         isRoot: true,
         children: [
-            {
+           /* {
                 id: "sub1",
                 content: "sub1",
                 children: [
@@ -64,11 +64,11 @@ import "./main.less";
                         content: "sub66666",
                     }
                 ]
-            },
+            },*/
             {
                 id: "sub7",
                 content: "sub8",
-                // direct: "left",
+                direct: "left",
                 children: [
                     {
                         id: "sub9",
@@ -84,19 +84,19 @@ import "./main.less";
                                     },
                                     {
                                         id: "sub16",
-                                        content: "sub16",
+                                        content: "sub16aa",
                                     },
                                     {
                                         id: "sub17",
-                                        content: "sub17",
+                                        content: "sub17sgfsdfsdf",
                                     },
                                     {
                                         id: "sub18",
-                                        content: "sub18",
+                                        content: "sub18bbbb",
                                     },
                                     {
                                         id: "sub19",
-                                        content: "sub19",
+                                        content: "sub192",
                                     },
                                 ]
                             },
