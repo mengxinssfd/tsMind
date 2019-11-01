@@ -76,23 +76,49 @@ class TsMind implements Operation, LifeCircle {
         this.setPosition(this.nodeTree);
     }
 
-    setPosition(node) {
-        const dom = node.currentDom;
+    resetLayout() {
+        for (let nodesKey in this.nodes) {
+            const node = this.nodes[nodesKey];
+            node.layout = {width: 0, height: 0, totalHeight: 0, totalWidth: 0, x: 0, y: 0};
+            node.el.style.visibility = "hidden";
+            node.el.style.left = "0px";
+            node.el.style.top = "0px";
+            const expander = node.expander;
+            if (expander) {
+                expander.y = 0;
+                expander.x = 0;
+                expander.el.style.left = "0px";
+                expander.el.style.top = "0px";
+                expander.el.style.visibility = "hidden";
+            }
+        }
+    }
+
+    setPosition(node: Node) {
+        const dom = node.el;
         dom.style.left = node.layout.x + "px";
         dom.style.top = node.layout.y + "px";
         dom.style.visibility = "";
         if (node.children) {
-            node.children.forEach(nd => {
-                this.setPosition(nd);
-            });
+            const expander = node.expander;
+            if (expander) {
+                expander.el.style.left = expander.x + "px";
+                expander.el.style.top = expander.y + "px";
+                expander.el.style.visibility = "";
+            }
+            if (node.expand) {
+                node.children.forEach(nd => {
+                    this.setPosition(nd);
+                });
+            }
         }
     }
 
     getTotalHeight(node: Node): { width: number, height: number } {
         const parent = node.parent;
         const margin = this.options.margin;
-        let height = node.currentDom.clientHeight;
-        let width = node.currentDom.clientWidth;
+        let height = node.el.clientHeight;
+        let width = node.el.clientWidth;
 
         node.layout.width = width;
         node.layout.height = height;
@@ -100,7 +126,8 @@ class TsMind implements Operation, LifeCircle {
 
         // if (node.content === "sub5555") debugger
         node.layout.x = node.isRoot ? this.options.margin : this.options.margin + node.parent.layout.x + node.parent.layout.width;
-        if (node.children && node.children.length) {
+        if (node.expander) node.expander.x = node.layout.x + node.layout.width;
+        if (node.children && node.children.length && node.expand) {
             let childrenHeight = (node.children.length - 1) * this.options.margin;
             let childrenWidth = 0;
             node.children.forEach((nd, index) => {
@@ -113,12 +140,16 @@ class TsMind implements Operation, LifeCircle {
             width += childrenWidth;
         } else {
             node.layout.y = this.nodeTree.layout.totalHeight + margin;
+            if (node.expander) node.expander.y = node.layout.y + node.layout.height / 2;
             node.layout.totalHeight = node.layout.height;
             let p = node.parent;
-            const addHeight = Math.max(height, parent.layout.height) + margin;
-            while (p) {
-                p.layout.totalHeight += addHeight;
-                p = p.parent;
+            if (p) {
+                // 父节点全部高度加上此节点高度
+                const addHeight = Math.max(height, parent.layout.height) + margin;
+                while (p) {
+                    p.layout.totalHeight += addHeight;
+                    p = p.parent;
+                }
             }
         }
         if (!node.isRoot) {
@@ -127,6 +158,7 @@ class TsMind implements Operation, LifeCircle {
             const firstChildLayout = parent.children[0].layout;
             const lastChildLayout = parent.children[pChildLen - 1].layout;
             parent.layout.y = ~~((lastChildLayout.y + lastChildLayout.height - firstChildLayout.y - parent.layout.height) / 2 + firstChildLayout.y);
+            parent.expander.y = parent.layout.y + parent.layout.height / 2;
         }
         return {height, width};
     }
@@ -134,13 +166,14 @@ class TsMind implements Operation, LifeCircle {
     drawLines() {
         const nodes = this.nodes;
         const context = this.context;
-        if (!this.nodeTree.children || !this.nodeTree.children.length) return;
+        if (!this.nodeTree.children || !this.nodeTree.children.length || !this.nodeTree.expand) return;
 
 
-        const drawLine = () => {
-            for (let key in this.nodes) {
-                const node = this.nodes[key];
-                if (node.isRoot) continue;
+        const drawLine = (node: Node) => {
+            if (node.children && node.children.length && node.expand) {
+                node.children.forEach(nd => drawLine(nd));
+            }
+            if (!node.isRoot) {
                 const parent = node.parent;
                 const pCoord = {x: parent.layout.x, y: parent.layout.y};
                 const coord = {x: node.layout.x, y: node.layout.y};
@@ -154,7 +187,7 @@ class TsMind implements Operation, LifeCircle {
             }
         };
 
-        drawLine();
+        drawLine(this.nodeTree);
     }
 
     drawBezierLine(context, start: Coord, end: Coord, space: number) {
@@ -166,14 +199,14 @@ class TsMind implements Operation, LifeCircle {
         context.stroke();
     }
 
-    drawDomNode() {
+    createDomNode() {
         const nodeTree = this.nodeTree;
         const nodeWrapper = DomOperator.createElement("nodes");
         DomOperator.addClass(nodeWrapper, "node-wrapper");
         this.nodeWrapper = nodeWrapper;
         this.el.appendChild(nodeWrapper);
 
-        const createNodeDom = (node: Node, parent?: Node) => {
+        const createDom = (node: Node, parent?: Node) => {
             if (node.id in this.nodes) {
                 console.error(`id: ${node.id} duplicate`);
             } else {
@@ -192,15 +225,8 @@ class TsMind implements Operation, LifeCircle {
                 }
             });
             nodeWrapper.appendChild(dom);
-            node.currentDom = dom;
-            node.layout = {
-                width: 0,
-                height: 0,
-                totalHeight: 0,
-                totalWidth: 0,
-                x: 0,
-                y: 0
-            };
+            node.el = dom;
+            node.layout = {width: 0, height: 0, totalHeight: 0, totalWidth: 0, x: 0, y: 0};
             // 默认右向
             node.direct = Direct[node.direct] || Direct.right;
             // 默认展开
@@ -218,15 +244,30 @@ class TsMind implements Operation, LifeCircle {
                 dom.innerText = node.content;
             }
             if (node.children && node.children.length) {
-                const expander = DomOperator.createElement("expander");
-                dom.appendChild(expander);
+                const expander = DomOperator.createEl({
+                    type: "expander",
+                    style: {
+                        visibility: "hidden"
+                    },
+                    attr: {
+                        nodeid: node.id,
+                        class: "expander" + (node.expand ? " expand" : ""),
+                    },
+                    on: {
+                        click: (e) => {
+                            this.setExpand(<string>node.id);
+                        }
+                    }
+                });
+                node.expander = {el: expander, x: 0, y: 0};
+                nodeWrapper.appendChild(expander);
                 for (let child of node.children) {
-                    createNodeDom(child, node);
+                    createDom(child, node);
                 }
             }
         };
 
-        createNodeDom(nodeTree);
+        createDom(nodeTree);
     }
 
     addNode(parentId, data: CustomNode): void {
@@ -244,12 +285,33 @@ class TsMind implements Operation, LifeCircle {
     draw(): void {
     }
 
+    setExpand(nodeId: string, isExpand?: boolean) {
+        const target = this.nodes[nodeId];
+        if (isExpand === undefined) isExpand = !target.expand;
+        target.expand = isExpand;
+        const el = target.expander.el;
+        isExpand ?
+            DomOperator.addClass(el, "expand")
+            : DomOperator.removeClass(el, "expand");
+        this.clearCanvas();
+        this.resetLayout();
+        this.layout();
+        this.drawLines();
+    }
+
     setData(node: CustomNode): void {
+        this.clearCanvas();
         this.nodeTree = node;
-        this.drawDomNode();
+        this.createDomNode();
         this.layout();
         this.drawLines();
         console.log(this.nodes);
+    }
+
+    clearCanvas() {
+        if (!this.nodeTree || !this.nodeTree.layout) return;
+        const {width, height} = this.nodeTree.layout;
+        this.context.clearRect(0, 0, width, height);
     }
 
     destroy(): void {

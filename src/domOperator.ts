@@ -24,8 +24,8 @@ interface DomOptions {
     on?: {
         [key: string]: {
             catch?: boolean,
-            handler: () => boolean
-        } | (() => boolean)
+            handler: (e: any) => boolean | void
+        } | ((e: any) => boolean | void)
     }
 }
 

@@ -35,11 +35,16 @@ export interface CustomNode {
     expand?: boolean,
 }
 
+interface Expander extends Coord {
+    el?: any
+}
+
 // node私有的属性，外部设置数据的时候不能传过来
 export interface Node extends CustomNode {
     parent?: Node,
     layout?: Layout,
-    currentDom?: any,
+    el?: any,
+    expander?: Expander,
     // parentDom?: any,
 }
 
@@ -69,7 +74,9 @@ export interface Operation {
 
     destroy(): void
 
-    drawDomNode()
+    createDomNode(): void
+
+    setExpand(nodeId: string, isExpand?: boolean): void
 }
 
 
