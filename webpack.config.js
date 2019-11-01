@@ -2,12 +2,13 @@ const path = require("path");
 const {CleanWebpackPlugin} = require("clean-webpack-plugin");
 const copy = require("copy-webpack-plugin");
 const HtmlPlugin = require("html-webpack-plugin");
+const resolve = dir => require('path').join(__dirname, dir);
 module.exports = {
     mode: "development",
     // devtool: "cheap-module-source-map",
     entry: {
         example:
-            // "./node_modules/babel-polyfill/dist/polyfill.js",
+        // "./node_modules/babel-polyfill/dist/polyfill.js",
             "./src/example/main.ts",
     },
     output: {
@@ -37,7 +38,7 @@ module.exports = {
             },
             {
                 test: /\.html$/,
-                use:[
+                use: [
                     {
                         loader: "html-loader"
                     }
@@ -55,13 +56,13 @@ module.exports = {
             filename: 'index.html',
             chunks: ['example'],// 于loader一样，在后面的会插到前面去
         }),
-       /* new copy([
-            {
-                from: path.resolve(__dirname, './static'),
-                to: path.resolve(__dirname, './dist/static'),
-                ignore: ['.*']
-            }
-        ]) */
+        /* new copy([
+             {
+                 from: path.resolve(__dirname, './static'),
+                 to: path.resolve(__dirname, './dist/static'),
+                 ignore: ['.*']
+             }
+         ]) */
     ],
     devServer: {
         // publicPath: '/',

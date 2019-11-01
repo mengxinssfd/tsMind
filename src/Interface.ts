@@ -31,7 +31,7 @@ export interface CustomNode {
     isRoot?: boolean,
     render?: (node: Node, domNode: any) => void,
     children?: Node[],
-    direct?: Direct,
+    direct?: Direct | "left" | "right" | "top" | "bottom",
     expand?: boolean,
 }
 
@@ -47,6 +47,7 @@ export interface Node extends CustomNode {
     expander?: Expander,
     // parentDom?: any,
 }
+
 
 export interface Options {
     el: string | any,

@@ -7,6 +7,7 @@
  */
 import {Coord, CustomNode, Direct, LifeCircle, Node, Operation, Options} from "./Interface";
 import {DomOperator} from "./domOperator";
+import {CanvasOperator} from "./canvasOperator";
 
 class TsMind implements Operation, LifeCircle {
     private nodeTree: Node;
@@ -160,11 +161,11 @@ class TsMind implements Operation, LifeCircle {
             parent.layout.y = ~~((lastChildLayout.y + lastChildLayout.height - firstChildLayout.y - parent.layout.height) / 2 + firstChildLayout.y);
             parent.expander.y = parent.layout.y + parent.layout.height / 2;
         }
+
         return {height, width};
     }
 
     drawLines() {
-        const nodes = this.nodes;
         const context = this.context;
         if (!this.nodeTree.children || !this.nodeTree.children.length || !this.nodeTree.expand) return;
 
@@ -177,27 +178,24 @@ class TsMind implements Operation, LifeCircle {
                 const parent = node.parent;
                 const pCoord = {x: parent.layout.x, y: parent.layout.y};
                 const coord = {x: node.layout.x, y: node.layout.y};
+                // 间距
                 let space = ~~(this.options.margin / 2);
+                // 右向
                 if (node.direct === Direct.right) {
                     pCoord.x = parent.layout.width + pCoord.x;
                     pCoord.y = ~~(parent.layout.height / 2) + pCoord.y;
                     coord.y = ~~(node.layout.height / 2) + coord.y;
                 }
-                this.drawBezierLine(context, pCoord, coord, space);
+                CanvasOperator.drawBezierLine(context, {
+                    width: this.options.line.width,
+                    color: this.options.line.color
+                }, pCoord, coord, space);
             }
         };
 
         drawLine(this.nodeTree);
     }
 
-    drawBezierLine(context, start: Coord, end: Coord, space: number) {
-        context.lineWidth = this.options.line.width;
-        context.strokeStyle = this.options.line.color;
-        context.beginPath();
-        context.moveTo(start.x, start.y);
-        context.bezierCurveTo(start.x + space, start.y, end.x - space, end.y, end.x, end.y);
-        context.stroke();
-    }
 
     createDomNode() {
         const nodeTree = this.nodeTree;
@@ -227,12 +225,13 @@ class TsMind implements Operation, LifeCircle {
             nodeWrapper.appendChild(dom);
             node.el = dom;
             node.layout = {width: 0, height: 0, totalHeight: 0, totalWidth: 0, x: 0, y: 0};
-            // 默认右向
-            node.direct = Direct[node.direct] || Direct.right;
+
             // 默认展开
             node.expand = node.expand === undefined ? true : node.expand;
             if (parent !== undefined) {
                 node.parent = parent;
+                // 未设置方向时 以父元素的方向为准，父元素没有方向时默认右向
+                node.direct = Direct[node.direct] || parent.direct || Direct.right;
             }
             // console.log(node.content, dom.clientWidth);
             if (node.isRoot) {

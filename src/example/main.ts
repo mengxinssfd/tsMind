@@ -41,10 +41,10 @@ import "./main.less";
                     {
                         id: "sub3",
                         content: "sub3",
-                        children: [...new Array(30).keys()].map(i => ({
-                        // children: [...new Array(799).keys()].map(i => ({
-                        // children: [...new Array(1670).keys()].map(i => ({
-                        // children: [...new Array(2000).keys()].map(i => ({
+                        children: [...new Array(5).keys()].map(i => ({
+                            // children: [...new Array(799).keys()].map(i => ({
+                            // children: [...new Array(1670).keys()].map(i => ({
+                            // children: [...new Array(2000).keys()].map(i => ({
                             id: "subA" + i,
                             content: "subA" + i,
                         }))
@@ -68,6 +68,7 @@ import "./main.less";
             {
                 id: "sub7",
                 content: "sub8",
+                // direct: "left",
                 children: [
                     {
                         id: "sub9",
