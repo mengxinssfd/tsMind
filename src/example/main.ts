@@ -30,46 +30,95 @@ import "./main.less";
         content: "root",
         isRoot: true,
         children: [
-           /* {
-                id: "sub1",
-                content: "sub1",
-                children: [
-                    {
-                        id: "sub2",
-                        content: "sub2",
-                    },
-                    {
-                        id: "sub3",
-                        content: "sub3",
-                        children: [...new Array(5).keys()].map(i => ({
-                            // children: [...new Array(799).keys()].map(i => ({
-                            // children: [...new Array(1670).keys()].map(i => ({
-                            // children: [...new Array(2000).keys()].map(i => ({
-                            id: "subA" + i,
-                            content: "subA" + i,
-                        }))
-                    }
-                ]
-            },
-            {
-                id: "sub4",
-                content: "sub4",
-                children: [
-                    {
-                        id: "sub5",
-                        content: "sub5555",
-                    },
-                    {
-                        id: "sub66666",
-                        content: "sub66666",
-                    }
-                ]
-            },*/
+            /* {
+                 id: "sub1",
+                 content: "sub1",
+                 children: [
+                     {
+                         id: "sub2",
+                         content: "sub2",
+                     },
+                     {
+                         id: "sub3",
+                         content: "sub3",
+                         children: [...new Array(5).keys()].map(i => ({
+                             // children: [...new Array(799).keys()].map(i => ({
+                             // children: [...new Array(1670).keys()].map(i => ({
+                             // children: [...new Array(2000).keys()].map(i => ({
+                             id: "subA" + i,
+                             content: "subA" + i,
+                         }))
+                     }
+                 ]
+             },
+             {
+                 id: "sub4",
+                 content: "sub4",
+                 children: [
+                     {
+                         id: "sub5",
+                         content: "sub5555",
+                     },
+                     {
+                         id: "sub66666",
+                         content: "sub66666",
+                     }
+                 ]
+             },*/
+
             {
                 id: "sub7",
                 content: "sub8",
                 direct: "left",
                 children: [
+                    {
+                        id: "sub1013",
+                        content: "sub1013",
+                        children:[
+                            {
+                                id: "sub1014",
+                                content: "sub1014",
+                            },
+                            {
+                                id: "sub1015",
+                                content: "sub1015",
+                            },
+                        ]
+                    },
+                    {
+                        id: "sub10",
+                        content: "sub10",
+                        children: [
+                            {
+                                id: "sub100",
+                                content: "sub100",
+                                children: [
+                                    {
+                                        id: "sub101",
+                                        content: "sub101",
+                                    },
+                                    {
+                                        id: "sub102",
+                                        content: "sub102",
+                                    }
+                                ]
+                            },
+                            {
+                                id: "sub103",
+                                content: "sub103",
+                                children: [
+                                    {
+                                        id: "sub1003",
+                                        content: "sub1003",
+                                    },
+                                    {
+                                        id: "sub1004",
+                                        content: "sub1004",
+                                    }
+                                ]
+                            },
+                        ]
+                    },
                     {
                         id: "sub9",
                         content: "sub9",
@@ -77,6 +126,10 @@ import "./main.less";
                             {
                                 id: "sub11",
                                 content: "sub11",
+                            },
+                            {
+                                id: "sub12",
+                                content: "sub12",
                                 children: [
                                     {
                                         id: "sub15",
@@ -88,7 +141,7 @@ import "./main.less";
                                     },
                                     {
                                         id: "sub17",
-                                        content: "sub17sgfsdfsdf",
+                                        content: "水电费水电费防守打法山东省地方",
                                     },
                                     {
                                         id: "sub18",
@@ -99,17 +152,9 @@ import "./main.less";
                                         content: "sub192",
                                     },
                                 ]
-                            },
-                            {
-                                id: "sub12",
-                                content: "sub12",
                             }
                         ]
                     },
-                    {
-                        id: "sub10",
-                        content: "sub10",
-                    }
                 ]
             }
         ],

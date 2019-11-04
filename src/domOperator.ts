@@ -41,7 +41,7 @@ export class DomOperator {
         for (let styleType in options.style) {
             const style = options.style[styleType];
             if (!style) continue;
-            dom.style[DomOperator.prefixStyle(styleType)] = style;
+            dom.style[styleType] = style;
         }
 
         // 属性

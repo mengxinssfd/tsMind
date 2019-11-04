@@ -52,9 +52,13 @@ class TsMind implements Operation, LifeCircle {
     layout() {
         const node = this.nodeTree;
 
-        // const {height, width} = this.getTotalHeight(node);
-        const {height, width} = this.getLeftTotalHeight(node, node);
-
+        // const {height, width} = node.children[0].direct === Direct.right ? this.getTotalHeight(node) : this.getLeftTotalHeight(node, node);
+        let height, width, hw = {width: 0, height: 0};
+        hw = this.getTotalHeight(node);
+        if (node.children[0].direct !== Direct.right)
+            this.left(node, hw);
+        height = hw.height;
+        width = hw.width;
         const nwLayout = this.nodeWrapperLayout;
         nwLayout.width = width + this.options.margin * 2;
         nwLayout.height = height + this.options.margin * 2;
@@ -78,6 +82,20 @@ class TsMind implements Operation, LifeCircle {
         this.canvas.style.height = nwLayout.height + "px";
 
         this.setPosition(this.nodeTree);
+    }
+
+    left(node: Node, wAndH) {
+        const margin = this.options.margin * 2;
+        node.layout.x = wAndH.width - node.layout.x - node.layout.width + margin;
+
+        if (node.expander) {
+            node.expander.x = wAndH.width - node.expander.x + margin;
+        }
+        if (node.children && node.children.length) {
+            node.children.forEach(nd => {
+                this.left(nd, wAndH);
+            });
+        }
     }
 
     resetLayout() {
@@ -118,71 +136,11 @@ class TsMind implements Operation, LifeCircle {
         }
     }
 
-    getLeftTotalHeight(node: Node, root: Node): { width: number, height: number } {
-        const parent = node.parent;
-        const margin = this.options.margin;
-        let height = node.el.clientHeight;
-        let width = node.el.clientWidth;
-
-        node.layout.width = width;
-        node.layout.height = height;
-        // node.layout.totalHeight = height;
-
-        // node.layout.x = node.isRoot ? this.options.margin : this.options.margin + node.parent.layout.x + node.parent.layout.width;
-        if (node.children && node.children.length && node.expand) {
-            let childrenHeight = (node.children.length - 1) * this.options.margin;
-            let childrenWidth = 0;
-            node.children.forEach((nd, index) => {
-                const {width: w, height: h} = this.getLeftTotalHeight(nd, root);
-                // 本身的totalHeight
-                childrenWidth = Math.max(margin + w, childrenWidth);
-                childrenHeight += h;
-            });
-            node.layout.x = childrenWidth + margin;
-
-            // TODO 左侧扩展margin不对
-            const childX = node.layout.x - margin;
-            node.children.forEach(nd => {
-                nd.layout.x = childX - nd.layout.width;
-                if (nd.expander) nd.expander.x = nd.layout.x;
-            });
-            height = Math.max(height, childrenHeight);
-            width += childrenWidth;
-        } else {
-            node.layout.y = root.layout.totalHeight + margin;
-            if (node.expander) node.expander.y = node.layout.y + node.layout.height / 2;
-            node.layout.totalWidth = width;
-            node.layout.totalHeight = node.layout.height;
-            let p = parent;
-            if (p) {
-                // 父节点全部高度加上此节点高度
-                const addHeight = Math.max(height, parent.layout.height) + margin;
-                const addWidth = Math.max(width + margin + parent.layout.width, parent.layout.totalWidth);
-                while (p) {
-                    p.layout.totalHeight += addHeight;
-                    p.layout.totalWidth = addWidth;
-                    p = p.parent;
-                }
-            }
-        }
-        // if (node.expander) node.expander.x = node.layout.x;
-        if (!node.isRoot) {
-            const pChildLen = parent.children.length;
-            // const marginHeight = this.options.margin * (pChildLen - 1);
-            const firstChildLayout = parent.children[0].layout;
-            const lastChildLayout = parent.children[pChildLen - 1].layout;
-            parent.layout.y = ~~((lastChildLayout.y + lastChildLayout.height - firstChildLayout.y - parent.layout.height) / 2 + firstChildLayout.y);
-            if (!parent.isRoot) parent.expander.y = parent.layout.y + parent.layout.height / 2;
-        }
-
-        return {height, width};
-    }
-
     getTotalHeight(node: Node): { width: number, height: number } {
         const parent = node.parent;
         const margin = this.options.margin;
-        let height = node.el.clientHeight;
-        let width = node.el.clientWidth;
+        let height = node.el.clientHeight || node.el.offsetHeight;
+        let width = node.el.clientWidth || node.el.offsetwidth;
 
         node.layout.width = width;
         node.layout.height = height;
@@ -195,11 +153,14 @@ class TsMind implements Operation, LifeCircle {
             let childrenHeight = (node.children.length - 1) * this.options.margin;
             let childrenWidth = 0;
             node.children.forEach((nd, index) => {
-                const {width: w, height: h} = this.getTotalHeight(nd);
-                // 本身的totalHeight
-                childrenWidth = Math.max(this.options.margin + w, childrenWidth);
-                childrenHeight += h;
+                const {width: totalWidth, height: totalHeight} = this.getTotalHeight(nd);
+
+                childrenHeight += totalHeight;
+                childrenWidth = Math.max(childrenWidth, totalWidth + margin);
             });
+
+            // childrenWidth = maxChildWidth + maxWidth + margin;
+
             height = Math.max(height, childrenHeight);
             width += childrenWidth;
         } else {
@@ -222,7 +183,7 @@ class TsMind implements Operation, LifeCircle {
             const firstChildLayout = parent.children[0].layout;
             const lastChildLayout = parent.children[pChildLen - 1].layout;
             parent.layout.y = ~~((lastChildLayout.y + lastChildLayout.height - firstChildLayout.y - parent.layout.height) / 2 + firstChildLayout.y);
-            parent.expander.y = parent.layout.y + parent.layout.height / 2;
+            if (parent.expander) parent.expander.y = parent.layout.y + parent.layout.height / 2;
         }
 
         return {height, width};
@@ -290,7 +251,7 @@ class TsMind implements Operation, LifeCircle {
                     nodeid: node.id
                 },
                 style: {
-                    visibility: "hidden"
+                    // visibility: "hidden"
                 }
             });
             nodeWrapper.appendChild(dom);
@@ -386,7 +347,6 @@ class TsMind implements Operation, LifeCircle {
         this.createDomNode();
         this.layout();
         this.drawLines();
-        console.log(this.nodes);
     }
 
     clearCanvas() {

@@ -1,22 +1,20 @@
 node {
+  display: block;
   position: absolute;
   box-sizing: border-box;
   padding: 4px 10px;
   background: #acc2ff;
   color: white;
   cursor: default;
+  //white-space: nowrap;
   &:hover {
     box-shadow: 0 0 2px 2px gray;
   }
-  //top: 50%;
-  //left: 100%;
-  //transform: translateY(50%);
 }
 .node-wrapper {
   position: absolute;
-  //left: 50%;
-  //top: 50%;
-  //transform: translate(-50%, -50%);
+  width: 100%; // 开始没有宽度的话，文字会自动一个字换一行
+  height: 100%;
   //background: aquamarine;
 }
 expander {
