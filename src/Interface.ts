@@ -36,15 +36,16 @@ export interface CustomNode {
 }
 
 interface Expander extends Coord {
-    el?: any
+    el?: HTMLElement
 }
 
 // node私有的属性，外部设置数据的时候不能传过来
 export interface Node extends CustomNode {
     parent?: Node,
     layout?: Layout,
-    el?: any,
+    el?: HTMLElement,
     expander?: Expander,
+    generation?: number, // 多少代子孙
     // parentDom?: any,
 }
 

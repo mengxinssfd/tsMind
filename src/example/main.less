@@ -1,3 +1,9 @@
+.node-wrapper {
+  position: absolute;
+  width: 100%; // 开始没有宽度的话，文字会自动一个字换一行
+  height: 100%;
+  //background: aquamarine;
+}
 node {
   display: block;
   position: absolute;
@@ -6,16 +12,10 @@ node {
   background: #acc2ff;
   color: white;
   cursor: default;
-  //white-space: nowrap;
+  white-space: nowrap; // 未设置并缩起来的时候，文字会变成纵向排列
   &:hover {
     box-shadow: 0 0 2px 2px gray;
   }
-}
-.node-wrapper {
-  position: absolute;
-  width: 100%; // 开始没有宽度的话，文字会自动一个字换一行
-  height: 100%;
-  //background: aquamarine;
 }
 expander {
   position: absolute;
@@ -32,6 +32,10 @@ expander {
   }
   &.top {
     margin-top: -@w
+  }
+  &.bottom {
+    margin-left: -@w/2;
+    margin-top: 0;
   }
   &.expand:after {
     top: -3px;

@@ -24,21 +24,22 @@ interface DomOptions {
     on?: {
         [key: string]: {
             catch?: boolean,
-            handler: (e: any) => boolean | void
-        } | ((e: any) => boolean | void)
+            handler: (e: Event) => boolean | void
+        } | ((e: Event) => boolean | void)
     }
 }
 
 export class DomOperator {
-    static createElement(nodeName: string): any {
+    static createElement(nodeName: string): HTMLElement {
         return document.createElement(nodeName);
     }
 
-    static createEl(options: DomOptions): any {
+    static createEl(options: DomOptions): HTMLElement {
         const dom = document.createElement(options.type);
         if (options.content) dom.innerText = options.content;
         // 样式
         for (let styleType in options.style) {
+            if (!options.style.hasOwnProperty(styleType)) continue;
             const style = options.style[styleType];
             if (!style) continue;
             dom.style[styleType] = style;
@@ -46,6 +47,7 @@ export class DomOperator {
 
         // 属性
         for (let key in options.attr) {
+            if (!options.attr.hasOwnProperty(key)) continue;
             const value = options.attr[key];
             if (!key) continue;
             dom.setAttribute(key, value);
@@ -73,10 +75,10 @@ export class DomOperator {
             return target && typeof target === 'object' && target.nodeType === 1 && typeof target.nodeName === 'string';
         };
 
-    static addClass = !!document.documentElement.classList ? function (target: any, className: string | string[]) {
+    static addClass = !!document.documentElement.classList ? function (target: HTMLElement, className: string | string[]) {
         target.classList.add(...Array.isArray(className) ? className : [className]);
         return target.className;
-    } : function (target: any, className: string | string[]) {
+    } : function (target: HTMLElement, className: string | string[]) {
         const originClass = target.className;
         const originClassArr = originClass.split(" ");
 
@@ -90,7 +92,7 @@ export class DomOperator {
         return target.className;
     };
 
-    static removeClass(dom: any, className: string): string {
+    static removeClass(dom: HTMLElement, className: string): string {
         if (dom.classList) {
             dom.classList.remove(className);
         } else {

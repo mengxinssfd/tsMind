@@ -69,7 +69,7 @@ import "./main.less";
             {
                 id: "sub7",
                 content: "sub8",
-                direct: "left",
+                direct: "bottom",
                 children: [
                     {
                         id: "sub1013",
@@ -157,6 +157,23 @@ import "./main.less";
                     },
                 ]
             }
+
+            /*{
+                id: "sub10",
+                content: "sub10",
+                direct: "bottom",
+                children: [...Array(6).keys()].map(index => ({
+                    id: "sub" + index,
+                    content: "sub" + index,
+                    children: [
+                        {
+                            id: "sub101" + index,
+                            content: "sub101" + index,
+                        },
+                    ]
+                }))
+
+            }*/
         ],
     });
 })();
