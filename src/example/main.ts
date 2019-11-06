@@ -23,7 +23,8 @@ import "./main.less";
             width: 2
         },
         mode: "canvas",
-        direct: "bottom"
+        direct: "free",
+        // direct: "bottom"
     });
 
     tm.setData({
@@ -175,8 +176,8 @@ import "./main.less";
                   }))
               },*/
             {
-                id: "subB",
-                content: "subB",
+                id: "left1",
+                content: "left1",
                 direct: "left",
                 children: [...Array(6).keys()].map(index => ({
                     id: "subB" + index,
@@ -191,7 +192,7 @@ import "./main.less";
             },
             {
                 id: "subC",
-                content: "subC",
+                content: "right",
                 direct: "right",
                 children: [...Array(6).keys()].map(index => ({
                     id: "subC" + index,
@@ -203,7 +204,37 @@ import "./main.less";
                         },
                     ]
                 }))
-            }
+            },
+            {
+                id: "subE",
+                content: "right2",
+                direct: "right",
+                children: [...Array(3).keys()].map(index => ({
+                    id: "subE" + index,
+                    content: "subE" + index,
+                    children: [
+                        {
+                            id: "sub1E" + index,
+                            content: "sub1E" + index,
+                        },
+                    ]
+                }))
+            },
+            {
+                id: "left2",
+                content: "left2",
+                direct: "left",
+                children: [...Array(6).keys()].map(index => ({
+                    id: "subD" + index,
+                    content: "subD" + index,
+                    children: [
+                        {
+                            id: "sub1D" + index,
+                            content: "sub1D" + index,
+                        },
+                    ]
+                }))
+            },
         ],
     });
 })();

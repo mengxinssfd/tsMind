@@ -74,28 +74,3 @@ function t(p: tes) {
 }
 
 t(<tes>"A");
-
-
-// 接收数据时的node类型
-export interface CustomNode {
-    id: string | number,
-    content: string,
-    isRoot?: boolean,
-    render?: (node: Node, domNode: any) => void,
-    children?: Node[],
-    direct?: Direct | "left" | "right" | "top" | "bottom",
-    expand?: boolean,
-}
-
-interface Expander extends Coord {
-    el?: HTMLElement
-}
-
-// node私有的属性，外部设置数据的时候不能传过来
-export interface Node extends CustomNode {
-    parent?: Node,
-    layout?: Layout,
-    el?: HTMLElement,
-    expander?: Expander,
-    // parentDom?: any,
-}

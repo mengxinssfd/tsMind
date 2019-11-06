@@ -3,9 +3,11 @@ const {CleanWebpackPlugin} = require("clean-webpack-plugin");
 const copy = require("copy-webpack-plugin");
 const HtmlPlugin = require("html-webpack-plugin");
 const resolve = dir => require('path').join(__dirname, dir);
-module.exports = {
+
+const isDev = process.env.NODE_ENV === "development";
+const config = {
     mode: "development",
-    // devtool: "cheap-module-source-map",
+    devtool: isDev ? "cheap-module-source-map" : "",
     entry: {
         example:
         // "./node_modules/babel-polyfill/dist/polyfill.js",
@@ -50,7 +52,6 @@ module.exports = {
         extensions: [".ts", ".tsx", ".js"]
     },
     plugins: [
-        new CleanWebpackPlugin(),
         new HtmlPlugin({
             template: './src/example/index.html',
             filename: 'index.html',
@@ -69,3 +70,7 @@ module.exports = {
         port: 8080,
     },
 };
+if (!isDev) {
+    config.plugins.push(new CleanWebpackPlugin())
+}
+module.exports = config;

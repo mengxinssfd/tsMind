@@ -17,7 +17,7 @@ let vendor = (() => {
 })();
 
 interface DomOptions {
-    type: string,
+    tagName: string,
     content?: string,
     style?: any,
     attr?: any,
@@ -30,12 +30,12 @@ interface DomOptions {
 }
 
 export class DomOperator {
-    static createElement(nodeName: string): HTMLElement {
-        return document.createElement(nodeName);
+    static createElement(tagName: string): HTMLElement {
+        return document.createElement(tagName);
     }
 
     static createEl(options: DomOptions): HTMLElement {
-        const dom = document.createElement(options.type);
+        const dom = document.createElement(options.tagName);
         if (options.content) dom.innerText = options.content;
         // 样式
         for (let styleType in options.style) {
@@ -49,7 +49,7 @@ export class DomOperator {
         for (let key in options.attr) {
             if (!options.attr.hasOwnProperty(key)) continue;
             const value = options.attr[key];
-            if (!key) continue;
+            if (!key || [NaN, "", null, undefined].includes(value)) continue;
             dom.setAttribute(key, value);
         }
 

@@ -32,6 +32,10 @@ export class Node implements CustomNode {
     el: HTMLElement;
     expander?: Expander;
     generation: number; // 多少代子孙
+
+    static NODE_TAG_NAME = "node";
+    static EXPANDER_TAG_NAME = "expander";
+
     constructor(node: CustomNode, options: Options, nodes: { [key: string]: Node }, wrapper: HTMLElement, parent: Node | null) {
         this.init(node, options, nodes, wrapper, parent);
     }
@@ -106,7 +110,7 @@ export class Node implements CustomNode {
 
     private createExpander(wrapper: HTMLElement): HTMLElement {
         const expander = DomOperator.createEl({
-            type: "expander",
+            tagName: Node.EXPANDER_TAG_NAME,
             style: {
                 visibility: "hidden"
             },
@@ -131,9 +135,10 @@ export class Node implements CustomNode {
     private createNodeDom(wrapper: HTMLElement) {
         const dom = DomOperator.createEl({
             attr: {
-                class: [this.isRoot ? "root" : "", this.class].filter(i => !!i).join(" ")
+                class: [this.isRoot ? "root" : "", this.class].filter(i => !!i).join(" "),
+                nodeid: this.id
             },
-            type: "node"
+            tagName: Node.NODE_TAG_NAME
         });
         if (this.render) {
             this.render(this);

@@ -62,12 +62,10 @@ class TsMind implements Operation, LifeCircle {
 
         // const {height, width} = node.children[0].direct === Direct.right ? this.getTotalHeight(node) : this.getLeftTotalHeight(node, node);
 
-        this.getTotalSize(node);
-
         let hw: { height: number, width: number };
         switch (this.options.direct) {
             case Direct.right:
-                hw = this.getRightTotalSize(node);
+                hw = this.getRightTotalSize(node, node);
                 break;
             case Direct.left:
                 hw = this.getLeftTotalSize(node);
@@ -128,7 +126,9 @@ class TsMind implements Operation, LifeCircle {
     }
 
     getTotalSize(node: Node): widthAndHeight {
-        let hw: widthAndHeight;
+        const margin = this.options.margin;
+        const root = this.nodeTree;
+        let hw: widthAndHeight = {width: 0, height: 0};
         // 分为上下左右 4个数组
         const obj = node.children.reduce((obj: { [key: string]: Array<Node> }, item) => {
             const direct = item.direct;
@@ -139,38 +139,94 @@ class TsMind implements Operation, LifeCircle {
             }
             return obj;
         }, {});
+        let {[Direct.left]: left, [Direct.right]: right, [Direct.bottom]: bottom} = obj;
 
-        console.log(obj);
-        /*const {[Direct.left]: left, [Direct.right]: right, [Direct.bottom]: bottom} = obj;
+
+        root.layout.width = root.el.offsetWidth | root.el.clientWidth;
+        root.layout.height = root.el.offsetHeight | root.el.clientHeight;
+
         if (left) {
-            hw = left.reduce((oj: widthAndHeight, item) => {
-                const {width, height} = this.getBottomTotalSize(item);
-                oj.width += width;
-                oj.height = Math.max(oj.height, height);
+            const offsetX = margin + root.layout.width;
+            hw = left.reduce((oj: widthAndHeight, item, index) => {
+                item.layout.totalHeight = oj.height + (index ? margin : 0);
+                const {width, height} = this.getRightTotalSize(item, item, offsetX);
+                oj.width = Math.max(oj.width, width);
+                oj.height += height;
                 return oj;
             }, {width: 0, height: 0});
-        }*/
+
+            hw.height += (left.length - 1) * margin;
+            hw.width = hw.width + margin + root.layout.width;
+            left.forEach(item => this.reverseX(item, hw.width));
+            const first = left[0].layout;
+            const last = left[left.length - 1].layout;
+            root.layout.y = ~~((last.y + last.height - first.y - root.layout.height) / 2 + first.y);
+            root.layout.totalWidth = Math.max(hw.width, root.layout.width);
+            root.layout.totalHeight = hw.height;
+            root.layout.x = root.layout.totalWidth - root.layout.width + margin;
+        }
+
+        if (right) {
+            const offsetX = margin + (left && left.length ? hw.width : root.layout.width);
+            root.layout.x = offsetX - root.layout.width;
+            let rightHw = right.reduce((oj: widthAndHeight, item, index) => {
+                item.layout.totalHeight = oj.height + (index ? margin : 0);
+                const {width, height} = this.getRightTotalSize(item, item, offsetX);
+                oj.width = Math.max(oj.width, width);
+                oj.height += height;
+                return oj;
+            }, {width: 0, height: 0});
+
+            (hw.height > rightHw.height ? right : left).forEach(item => {
+                this.setY(item, Math.abs(hw.height - rightHw.height) / 2);
+            });
+
+            rightHw.width = rightHw.width + root.layout.width + margin;
+            hw.width += rightHw.width + offsetX;
+            hw.height = Math.max(rightHw.height, hw.height);
+
+            // root.layout.y = ~~(hw.height / 2);
+            root.layout.totalWidth = hw.width;
+            root.layout.totalHeight = hw.height;
+
+        }
+
         return hw;
     }
 
+    // 反转x
+    reverseX(node: Node, width: number) {
+        const margin = this.options.margin * 2;
+        node.layout.x = width - node.layout.x - node.layout.width + margin;
+
+        if (node.expander) {
+            node.expander.x = width - node.expander.x + margin;
+        }
+        if (node.children && node.children.length) {
+            node.children.forEach(nd => {
+                this.reverseX(nd, width);
+            });
+        }
+    }
+
+    setY(node: Node, offsetY: number) {
+        node.layout.y = node.layout.y + offsetY;
+
+        if (node.expander) {
+            node.expander.y = node.expander.y + offsetY;
+        }
+        if (node.children && node.children.length) {
+            node.children.forEach(nd => {
+                this.setY(nd, offsetY);
+            });
+        }
+    }
+
+
     getLeftTotalSize(node: Node): widthAndHeight {
-        const {width, height} = this.getRightTotalSize(node);
+        const {width, height} = this.getRightTotalSize(node, node);
 
-        // 反转x
-        const setX = (node: Node) => {
-            const margin = this.options.margin * 2;
-            node.layout.x = width - node.layout.x - node.layout.width + margin;
-
-            if (node.expander) {
-                node.expander.x = width - node.expander.x + margin;
-            }
-            if (node.children && node.children.length) {
-                node.children.forEach(nd => {
-                    setX(nd);
-                });
-            }
-        };
-        setX(node);
+        this.reverseX(node, width);
         return {width, height};
     }
 
@@ -225,7 +281,7 @@ class TsMind implements Operation, LifeCircle {
         return getBottom(node, node);
     }
 
-    getRightTotalSize(node: Node): widthAndHeight {
+    getRightTotalSize(node: Node, root: Node, offsetX = 0): widthAndHeight {
         const parent = node.parent;
         const margin = this.options.margin;
         let height = node.el.clientHeight || node.el.offsetHeight;
@@ -236,13 +292,13 @@ class TsMind implements Operation, LifeCircle {
         // node.layout.totalHeight = height;
 
         // if (node.content === "sub5555") debugger
-        node.layout.x = node.isRoot ? this.options.margin : this.options.margin + node.parent.layout.x + node.parent.layout.width;
+        node.layout.x = node === root ? offsetX + margin : (margin + node.parent.layout.x + node.parent.layout.width);
         if (node.expander) node.expander.x = node.layout.x + node.layout.width;
         if (node.children && node.children.length && node.expand) {
             let childrenHeight = (node.children.length - 1) * this.options.margin;
             let childrenWidth = 0;
             node.children.forEach((nd) => {
-                const {width: totalWidth, height: totalHeight} = this.getRightTotalSize(nd);
+                const {width: totalWidth, height: totalHeight} = this.getRightTotalSize(nd, root);
 
                 childrenHeight += totalHeight;
                 childrenWidth = Math.max(childrenWidth, totalWidth + margin);
@@ -253,20 +309,21 @@ class TsMind implements Operation, LifeCircle {
             height = Math.max(height, childrenHeight);
             width += childrenWidth;
         } else {
-            node.layout.y = this.nodeTree.layout.totalHeight + margin;
+            node.layout.y = root.layout.totalHeight + margin;
             if (node.expander) node.expander.y = node.layout.y + node.layout.height / 2;
             node.layout.totalHeight = node.layout.height;
             let p = node.parent;
             if (p) {
-                // 父节点全部高度加上此节点高度
+                // 全部父节点高度加上此节点高度
                 const addHeight = Math.max(height, parent.layout.height) + margin;
                 while (p) {
+                    console.log(p.id);
                     p.layout.totalHeight += addHeight;
-                    p = p.parent;
+                    p = p === root ? null : p.parent;
                 }
             }
         }
-        if (!node.isRoot) {
+        if (node !== root) {
             const pChildLen = parent.children.length;
             // const marginHeight = this.options.margin * (pChildLen - 1);
             const firstChildLayout = parent.children[0].layout;
@@ -301,7 +358,6 @@ class TsMind implements Operation, LifeCircle {
     drawLines() {
         const context = this.context;
         if (!this.nodeTree.children || !this.nodeTree.children.length || !this.nodeTree.expand) return;
-
 
         const drawLine = (node: Node) => {
             if (node.children && node.children.length && node.expand) {
@@ -350,15 +406,21 @@ class TsMind implements Operation, LifeCircle {
     }
 
     createDomNode(nodeTree: CustomNode) {
-        console.time("tttt");
         const nodeWrapper = DomOperator.createElement("nodes");
         DomOperator.addClass(nodeWrapper, "node-wrapper");
         this.nodeWrapper = nodeWrapper;
         this.el.appendChild(nodeWrapper);
 
-        this.nodeTree = new Node(nodeTree, this.options, this.nodes, nodeWrapper, null);
+        this.el.addEventListener("click", (e) => {
+            e = e || <MouseEvent>window.event;
+            const target = <HTMLElement>e.target;
+            if (target.nodeName === "EXPANDER") {
+                const nodeId = target.getAttribute("nodeid");
+                this.setExpand(nodeId);
+            }
+        });
 
-        console.timeEnd("tttt");
+        this.nodeTree = new Node(nodeTree, this.options, this.nodes, nodeWrapper, null);
     }
 
     addNode(parentId, data: CustomNode): void {
@@ -396,7 +458,6 @@ class TsMind implements Operation, LifeCircle {
         this.layout();
         this.drawLines();
     }
-
 
     clearCanvas() {
         if (!this.nodeTree || !this.nodeTree.layout) return;
