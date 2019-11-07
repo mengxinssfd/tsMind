@@ -197,14 +197,11 @@ class TsMind implements Operation, LifeCircle {
                 this.setY(item, Math.abs(hw.height - rightHw.height) / 2);
             });
 
-            rightHw.width = rightHw.width + root.layout.width + margin;
-            hw.width += rightHw.width + offsetX;
+            hw.width += rightHw.width + offsetX - hw.width;
             hw.height = Math.max(rightHw.height, hw.height);
 
-            // root.layout.y = ~~(hw.height / 2);
             root.layout.totalWidth = hw.width;
             root.layout.totalHeight = hw.height;
-
         }
 
         return hw;
@@ -429,8 +426,6 @@ class TsMind implements Operation, LifeCircle {
 
     destroy(): void {
     }
-
-
 }
 
 export {TsMind};
