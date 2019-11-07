@@ -5,10 +5,11 @@ import {DomOperator} from "./domOperator";
 enum STATE {expand = "expand", ellipsis = "ellipsis"}
 
 export class Expander implements Coord {
+    static TAG_NAME = "expander";
     public x: number = 0;
     public y: number = 0;
     public status: STATE;
-     el: HTMLElement;
+    el: HTMLElement;
 
 
     constructor(node: Node, wrapper: HTMLElement) {
@@ -18,7 +19,7 @@ export class Expander implements Coord {
 
     private init(node, wrapper) {
         const expander = DomOperator.createEl({
-            tagName: Node.EXPANDER_TAG_NAME,
+            tagName: Expander.TAG_NAME,
             style: {
                 visibility: "hidden"
             },
@@ -58,5 +59,15 @@ export class Expander implements Coord {
         this.el.style.visibility = isShow ? "" : "hidden";
     }
 
-
+    public changeStatus(isExpand?: boolean) {
+        if (isExpand === undefined) isExpand = this.status === STATE.expand;
+        this.status = isExpand ? STATE.expand : STATE.ellipsis;
+        if (isExpand) {
+            DomOperator.removeClass(this.el, STATE.ellipsis);
+            DomOperator.addClass(this.el, STATE.expand);
+        } else {
+            DomOperator.removeClass(this.el, STATE.expand);
+            DomOperator.addClass(this.el, STATE.ellipsis);
+        }
+    }
 }

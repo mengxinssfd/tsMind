@@ -68,10 +68,10 @@ export class DomOperator {
     }
 
     static isDom = (typeof HTMLElement === 'object') ?
-        function (target): boolean {
+        function (target: any): target is HTMLElement {
             return target instanceof HTMLElement;
         } :
-        function (target): boolean {
+        function (target: any): target is HTMLElement {
             return target && typeof target === 'object' && target.nodeType === 1 && typeof target.nodeName === 'string';
         };
 

@@ -25,12 +25,8 @@ export interface Layout extends Coord {
     totalWidth: number // 包含子元素的宽度
 }
 
-
-
-
-
 export interface Options {
-    el: string | any,
+    el: string | HTMLElement,
     mode: "canvas" | "svg",
     editable: boolean,
     margin: number,
@@ -56,7 +52,7 @@ export interface Operation {
 
     destroy(): void
 
-    setExpand(nodeId: string, isExpand?: boolean): void
+    changeExpandStatus(nodeId: string, isExpand?: boolean): void
 }
 
 

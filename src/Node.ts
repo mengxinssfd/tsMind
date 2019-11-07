@@ -31,8 +31,7 @@ export class Node implements CustomNode {
     expander?: Expander;
     generation: number; // 多少代子孙
 
-    static NODE_TAG_NAME = "node";
-    static EXPANDER_TAG_NAME = "expander";
+    static TAG_NAME = "node";
 
     constructor(node: CustomNode, options: Options, nodes: { [key: string]: Node }, wrapper: HTMLElement, parent: Node | null) {
         this.init(node, options, nodes, wrapper, parent);
@@ -51,7 +50,7 @@ export class Node implements CustomNode {
         this.render = node.render || null;
         if (parent) {
             this.parent = parent;
-            if (options.direct === "free") {
+            if (["free", "left-right"].includes(options.direct)) {
                 // 未设置方向时 以父元素的方向为准，父元素没有方向时默认右向
                 this.direct = Direct[node.direct] || parent.direct || Direct.right;
             } else {
@@ -92,7 +91,7 @@ export class Node implements CustomNode {
                 class: [this.isRoot ? "root" : "", this.class].filter(i => !!i).join(" "),
                 nodeid: this.id
             },
-            tagName: Node.NODE_TAG_NAME
+            tagName: Node.TAG_NAME
         });
         if (this.render) {
             this.render(this);
@@ -156,4 +155,9 @@ export class Node implements CustomNode {
     }
 
 
+    public changeStatus(isExpand?: boolean) {
+        if (isExpand === undefined) isExpand = !this.expand;
+        this.expand = isExpand;
+        if (this.expander) this.expander.changeStatus(isExpand);
+    }
 }

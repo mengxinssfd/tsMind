@@ -23,7 +23,7 @@ import "./main.less";
             width: 2
         },
         mode: "canvas",
-        direct: "free",
+        direct: "left-right",
         // direct: "bottom"
     });
 

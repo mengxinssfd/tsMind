@@ -9,6 +9,7 @@ import {Direct, LifeCircle, Operation, Options} from "./Interface";
 import {DomOperator} from "./domOperator";
 import {CanvasOperator} from "./canvasOperator";
 import {Node, CustomNode} from "./Node";
+import {Expander} from "./Expander";
 
 interface widthAndHeight {
     width: number,
@@ -17,8 +18,8 @@ interface widthAndHeight {
 
 class TsMind implements Operation, LifeCircle {
     private nodeTree: Node;
-    private el: HTMLElement;
-    private nodeWrapper: HTMLElement;
+    private containerDom: HTMLElement;
+    private rootNodeDom: HTMLElement;
     nodeWrapperLayout = {
         width: 0,
         height: 0,
@@ -45,14 +46,16 @@ class TsMind implements Operation, LifeCircle {
     }
 
     init() {
-        let el = this.options.el;
-        el = DomOperator.isDom(el) ? el : document.querySelector(el);
-        this.el = el;
+        let containerDom = this.options.el;
+        if (!DomOperator.isDom(containerDom)) {
+            containerDom = <HTMLElement>document.querySelector(<string>containerDom);
+        }
+        this.containerDom = containerDom;
 
-        el.style.position = "relative";
+        containerDom.style.position = "relative";
 
         const canvas = this.canvas = <HTMLCanvasElement>DomOperator.createElement("canvas");
-        el.appendChild(canvas);
+        containerDom.appendChild(canvas);
 
         this.context = canvas.getContext("2d");
     }
@@ -74,9 +77,9 @@ class TsMind implements Operation, LifeCircle {
                 hw = this.calcBottomSize(node);
                 break;
             case "free":
-                hw = this.calcLeftAndRightSize(node);
                 break;
             case "left-right":
+                hw = this.calcLeftAndRightSize(node);
                 break;
         }
 
@@ -85,14 +88,15 @@ class TsMind implements Operation, LifeCircle {
         nwLayout.width = width + this.options.margin * 2;
         nwLayout.height = height + this.options.margin * 2;
 
-        this.nodeWrapper.style.width = nwLayout.width + "px";
-        this.nodeWrapper.style.height = nwLayout.height + "px";
+        this.rootNodeDom.style.width = nwLayout.width + "px";
+        this.rootNodeDom.style.height = nwLayout.height + "px";
 
-        const el = this.el;
+        // container的宽高和位置
+        const el = this.containerDom;
         this.nodeWrapperLayout.x = Math.max(((el.offsetWidth || el.clientWidth) - nwLayout.width) / 2, 0);
         this.nodeWrapperLayout.y = Math.max(((el.offsetHeight || el.clientHeight) - nwLayout.height) / 2, 0);
-        this.nodeWrapper.style.left = nwLayout.x + "px";
-        this.nodeWrapper.style.top = nwLayout.y + "px";
+        this.rootNodeDom.style.left = nwLayout.x + "px";
+        this.rootNodeDom.style.top = nwLayout.y + "px";
 
         this.canvas.style.position = "absolute";
         this.canvas.style.left = nwLayout.x + "px";
@@ -330,13 +334,14 @@ class TsMind implements Operation, LifeCircle {
                 const pCoord = {x: parent.layout.x, y: parent.layout.y};
                 const coord = {x: node.layout.x, y: node.layout.y};
                 // 间距
-                let offsetX = ~~(this.options.margin / 2);
+                const offset = ~~(this.options.margin / 2);
+                let offsetX = offset;
                 let offsetY = 0;
                 // 右向
 
                 switch (node.direct) {
                     case Direct.left:
-                        offsetX = -offsetX;
+                        offsetX = -offset;
                         coord.x = node.layout.x + node.layout.width;
                         pCoord.y = ~~(parent.layout.height / 2) + pCoord.y;
                         coord.y = ~~(node.layout.height / 2) + coord.y;
@@ -347,7 +352,7 @@ class TsMind implements Operation, LifeCircle {
                         coord.y = ~~(node.layout.height / 2) + coord.y;
                         break;
                     case Direct.bottom:
-                        offsetY = offsetX;
+                        offsetY = offset;
                         offsetX = 0;
                         pCoord.x = ~~(parent.layout.width / 2) + pCoord.x;
                         pCoord.y = parent.layout.height + pCoord.y;
@@ -370,15 +375,15 @@ class TsMind implements Operation, LifeCircle {
     initNode(nodeTree: CustomNode) {
         const nodeWrapper = DomOperator.createElement("nodes");
         DomOperator.addClass(nodeWrapper, "node-wrapper");
-        this.nodeWrapper = nodeWrapper;
-        this.el.appendChild(nodeWrapper);
+        this.rootNodeDom = nodeWrapper;
+        this.containerDom.appendChild(nodeWrapper);
 
-        this.el.addEventListener("click", (e) => {
+        this.containerDom.addEventListener("click", (e) => {
             e = e || <MouseEvent>window.event;
             const target = <HTMLElement>e.target;
-            if (target.nodeName === "EXPANDER") {
+            if (target.nodeName === Expander.TAG_NAME.toUpperCase()) {
                 const nodeId = target.getAttribute("nodeid");
-                this.setExpand(nodeId);
+                this.changeExpandStatus(nodeId);
             }
         });
 
@@ -400,14 +405,9 @@ class TsMind implements Operation, LifeCircle {
     draw(): void {
     }
 
-    setExpand(nodeId: string, isExpand?: boolean) {
+    changeExpandStatus(nodeId: string, isExpand?: boolean) {
         const target = this.nodes[nodeId];
-        if (isExpand === undefined) isExpand = !target.expand;
-        target.expand = isExpand;
-        const el = target.expander.el;
-        isExpand ?
-            DomOperator.addClass(el, "expand")
-            : DomOperator.removeClass(el, "expand");
+        target.changeStatus();
         this.clearCanvas();
         this.nodeTree.resetLayout();
         this.layout();
