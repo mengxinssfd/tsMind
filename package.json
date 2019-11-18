@@ -1,6 +1,6 @@
 {
   "name": "mindts",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "typescript的脑图插件",
   "main": "./index.js",
   "module": "./lib/index.js",

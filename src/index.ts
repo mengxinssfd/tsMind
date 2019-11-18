@@ -10,6 +10,7 @@ import {DomOperator} from "./domOperator";
 import {CanvasOperator} from "./canvasOperator";
 import {Node, CustomNode} from "./Node";
 import {Expander} from "./Expander";
+
 // import "./index.less";
 
 interface widthAndHeight {
@@ -429,4 +430,4 @@ class TsMind implements Operation, LifeCircle {
     }
 }
 
-export {TsMind};
+export default TsMind;

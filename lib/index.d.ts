@@ -46,4 +46,4 @@ declare class TsMind implements Operation, LifeCircle {
     clearCanvas(): void;
     destroy(): void;
 }
-export { TsMind };
+export default TsMind;

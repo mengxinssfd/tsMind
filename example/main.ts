@@ -4,7 +4,7 @@
  * @Description:
  */
 
-import {TsMind} from "../src";
+import TsMind from "../src";
 
 
 // @ts-ignore
