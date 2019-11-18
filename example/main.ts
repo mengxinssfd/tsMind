@@ -4,15 +4,15 @@
  * @Description:
  */
 
-import {TsMind} from "../index";
-import "./main.less";
+import {TsMind} from "../src";
 
 
 // @ts-ignore
-// const tsMindPro = import(/* webpackChunkName:"TsMind" */"../index");
-
+// const tsMindPro = import(/* webpackChunkName:"TsMind" */"../src/index");
+// console.log(tsMindPro);
 (async function f() {
     // const {TsMind} = await tsMindPro;
+    // console.log(tsMindPro);
     const tm = new TsMind({
         el: ".container",
         editable: false,

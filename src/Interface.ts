@@ -70,3 +70,6 @@ function t(p: tes) {
 }
 
 t(<tes>"A");
+
+type test = "123123" | "123bbbb";
+let a: test = "123123";

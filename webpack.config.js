@@ -5,17 +5,20 @@ const HtmlPlugin = require("html-webpack-plugin");
 const resolve = dir => require('path').join(__dirname, dir);
 
 const isDev = process.env.NODE_ENV === "development";
+const isPublish = process.env.NODE_ENV === "publish";
 const config = {
     mode: "development",
     devtool: isDev ? "cheap-module-source-map" : "",
-    entry: {
+    entry: isPublish ? {
+        index: "./src/index.ts",
+    } : {
         example:
         // "./node_modules/babel-polyfill/dist/polyfill.js",
             "./src/example/main.ts",
     },
     output: {
         path: path.resolve(__dirname, "dist"),
-        filename: "[name].[hash:4].js"
+        filename: isPublish ? "[name].js" : "[name].[hash:4].js"
     },
     module: {
         rules: [
@@ -52,11 +55,6 @@ const config = {
         extensions: [".ts", ".tsx", ".js"]
     },
     plugins: [
-        new HtmlPlugin({
-            template: './src/example/index.html',
-            filename: 'index.html',
-            chunks: ['example'],// 于loader一样，在后面的会插到前面去
-        }),
         /* new copy([
              {
                  from: path.resolve(__dirname, './static'),
@@ -71,6 +69,15 @@ const config = {
     },
 };
 if (!isDev) {
-    config.plugins.push(new CleanWebpackPlugin())
+    config.plugins.push(new CleanWebpackPlugin());
+}
+if (!isPublish) {
+    config.plugins.push(new HtmlPlugin({
+        template: './src/example/index.html',
+        filename: 'index.html',
+        chunks: ['example'],// 于loader一样，在后面的会插到前面去
+    }));
+} else {
+    config.module.rules[1].exclude.push(path.resolve(__dirname, "example"));
 }
 module.exports = config;
