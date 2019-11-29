@@ -398,7 +398,7 @@ class TsMind implements Operation, LifeCircle {
     removeNode(id): void {
     }
 
-    updateNode(id, data: object): void {
+    updateNode(id, data: any): void {
     }
 
     draw(): void {
